@@ -23,7 +23,7 @@ namespace WebApiVideojuegos
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "ApiVideoclub", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebApiVideojuegos", Version = "v1" });
             });
         }
 
