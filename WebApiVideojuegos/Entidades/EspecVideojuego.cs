@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using WebApiVideojuegos.Validaciones;
+
 //Data annotantions proporciona claases de atributos
 namespace WebApiVideojuegos.Entidades
 {
@@ -18,7 +18,7 @@ namespace WebApiVideojuegos.Entidades
         public string fechaLanzamiento { get; set; }
 
         public int VideojuegoId { get; set; }
-        [Required(ErrorMessage = "El campo {0} es requerido")]
+        [Required(ErrorMessage = "El campo consola {0} es requerido")]
   
         public string consola { get; set; }
 
