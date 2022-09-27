@@ -7,6 +7,7 @@ namespace WebApiVideojuegos.Controllers
 {
     [ApiController]
     [Route("videojuegos")]
+
     public class VideojuegosController: ControllerBase
     {
         private readonly ApplicationDbContext dbContext;
@@ -15,11 +16,49 @@ namespace WebApiVideojuegos.Controllers
             this.dbContext = dbContext;
         }
         [HttpGet]
-   
+        [HttpGet("listado")]//api/videojuegos/listado
+        [HttpGet("/listado")]// listado
         public async Task<ActionResult<List<Videojuego>>> Get()
         {
             return await dbContext.Videojuegos.Include(x => x.EspecVideojuegos).ToListAsync();
         }
+
+        [HttpGet("primero")]//api/videojuegos/primero
+        public async Task<ActionResult<EspecVideojuego>> Primerjuego([FromHeader] int Id, [FromQuery] string name,
+               [FromQuery] int VideojuegoId)
+        {
+            return await dbContext.EspecVideojuegos.FirstOrDefaultAsync();
+        }
+
+        [HttpGet("primero2")]//api/videojuegos/primero2
+        public ActionResult<EspecVideojuego> PrimerPeliculaD()
+        {
+            return new EspecVideojuego() { name = "DOS" };
+        }
+
+        [HttpGet("{id:int}/{param=Metroid}")]
+        public async Task<ActionResult<EspecVideojuego>> Get(int id, string param)
+        {
+            var juego = await dbContext.EspecVideojuegos.FirstOrDefaultAsync(x => x.Id == id);
+            if (juego == null)
+            {
+                return NotFound();
+            }
+            return juego;
+        }
+
+        [HttpGet("{nombre}")]
+        public async Task<ActionResult<EspecVideojuego>> Get([FromRoute] string nombre)
+        {
+            var juego = await dbContext.EspecVideojuegos.FirstOrDefaultAsync(x => x.name.Contains(nombre));
+            if (juego == null)
+            {
+                return NotFound();
+            }
+            return juego;
+        }
+
+
 
         [HttpPost]
 
@@ -41,6 +80,7 @@ namespace WebApiVideojuegos.Controllers
             await dbContext.SaveChangesAsync();
             return Ok();
         }
+
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> Delete(int id)
         {

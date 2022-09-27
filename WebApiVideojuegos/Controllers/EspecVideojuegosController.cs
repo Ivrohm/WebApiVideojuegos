@@ -30,10 +30,10 @@ namespace WebApiVideojuegos.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(EspecVideojuego especVideojuego)
         {
-            var existeEspecVidejuego = await dbContext.Videojuegos.AnyAsync(x => x.Id == especVideojuego.JuegoId);
+            var existeEspecVidejuego = await dbContext.Videojuegos.AnyAsync(x => x.Id == especVideojuego.VideojuegoId);
             if (!existeEspecVidejuego)
             {
-                return BadRequest($"No existe el juego con esta id: {especVideojuego.JuegoId}");
+                return BadRequest($"No existe el juego con esta id: {especVideojuego.VideojuegoId}");
             }
             dbContext.Add(especVideojuego);
             await dbContext.SaveChangesAsync();

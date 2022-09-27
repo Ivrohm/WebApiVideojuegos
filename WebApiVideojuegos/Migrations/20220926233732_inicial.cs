@@ -4,21 +4,32 @@
 
 namespace WebApiVideojuegos.Migrations
 {
-    public partial class EspecVideojuegos : Migration
+    public partial class inicial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Videojuegos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Videojuegos", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "EspecVideojuegos",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    fechaLanzamiento = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    JuegoId = table.Column<int>(type: "int", nullable: false),
-                    consola = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    VideojuegoId = table.Column<int>(type: "int", nullable: true)
+                    name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    VideojuegoId = table.Column<int>(type: "int", nullable: false),
+                    consola = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -27,7 +38,8 @@ namespace WebApiVideojuegos.Migrations
                         name: "FK_EspecVideojuegos_Videojuegos_VideojuegoId",
                         column: x => x.VideojuegoId,
                         principalTable: "Videojuegos",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -40,6 +52,9 @@ namespace WebApiVideojuegos.Migrations
         {
             migrationBuilder.DropTable(
                 name: "EspecVideojuegos");
+
+            migrationBuilder.DropTable(
+                name: "Videojuegos");
         }
     }
 }
