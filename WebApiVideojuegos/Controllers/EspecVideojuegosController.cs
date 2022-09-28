@@ -69,7 +69,7 @@ namespace WebApiVideojuegos.Controllers
                 return NotFound("El recurso no fue encontrado");
             }
 
-            //var validateRelation = await dbContext.PeliculaVideoclub.AnyAsync
+           
 
             dbContext.Remove(new EspecVideojuego
             {
