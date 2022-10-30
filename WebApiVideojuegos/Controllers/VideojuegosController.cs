@@ -2,6 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using System.Formats.Asn1;
 using WebApiVideojuegos.Entidades;
+using WebApiVideojuegos.Services;
+
+
 
 namespace WebApiVideojuegos.Controllers
 {
@@ -11,15 +14,55 @@ namespace WebApiVideojuegos.Controllers
     public class VideojuegosController: ControllerBase
     {
         private readonly ApplicationDbContext dbContext;
-        public VideojuegosController(ApplicationDbContext dbContext)
+        private readonly IService service;
+        private readonly ServiceTransient serviceTransient;
+        private readonly ServiceScoped serviceScoped;
+        private readonly ServiceSingleton serviceSingleton;
+        private readonly ILogger<VideojuegosController> logger;
+
+        public VideojuegosController(ApplicationDbContext dbContext, IService service,
+            ServiceTransient serviceTransient, ServiceScoped serviceScoped,
+            ServiceSingleton serviceSingleton, ILogger<VideojuegosController> logger
+          )
         {
             this.dbContext = dbContext;
+            this.service = service;
+            this.serviceTransient = serviceTransient;
+            this.serviceScoped = serviceScoped;
+            this.serviceSingleton = serviceSingleton;
+            this.logger = logger;
         }
+
+        [HttpGet("GUID")]
+        
+        //[ServiceFilter(typeof(FiltroDeAccion))]
+   
+        public ActionResult ObtenerGuid()
+        {
+      
+            return Ok(new
+            {
+
+                VideojuegosControllerTransient = serviceTransient.guid,
+                ServiceA_Transient = service.GetTransient(),
+                VideojuegosControllerScoped = serviceScoped.guid,
+                ServiceA_Scoped = service.GetScoped(),
+                VideojuegosControllerSingleton = serviceSingleton.guid,
+                ServiceA_Singleton = service.GetSingleton()
+            });
+        }
+
         [HttpGet]
         [HttpGet("listado")]//api/videojuegos/listado
         [HttpGet("/listado")]// listado
         public async Task<ActionResult<List<Videojuego>>> Get()
+
         {
+            //existen varios niveles de loog puede mostrar cosas criticas
+            //throw new NotImplementedException();
+            logger.LogInformation("Se obtiene el listado de juegos");
+            logger.LogWarning("Mensaje de prueba warning");
+            service.ejecutarJob();
             return await dbContext.Videojuegos.Include(x => x.EspecVideojuegos).ToListAsync();
         }
 
@@ -42,24 +85,41 @@ namespace WebApiVideojuegos.Controllers
             var juego = await dbContext.EspecVideojuegos.FirstOrDefaultAsync(x => x.Id == id);
             if (juego == null)
             {
+
                 return NotFound();
             }
             return juego;
         }
-
-        [HttpGet("{nombre}")]
+        [HttpGet("obtenerJuego/{nombre}")]
         public async Task<ActionResult<EspecVideojuego>> Get([FromRoute] string nombre)
         {
             var juego = await dbContext.EspecVideojuegos.FirstOrDefaultAsync(x => x.name.Contains(nombre));
             if (juego == null)
             {
+                logger.LogError("No se encuentra el juego");
                 return NotFound();
             }
             return juego;
         }
 
+     
+        [HttpPost]
+        public async Task<ActionResult> Post([FromBody] Videojuego videojuego)
+        {
+            var existeAlumnoMismoNombre = await dbContext.Videojuegos.AnyAsync(x => x.name == videojuego.name);
+
+            if (existeAlumnoMismoNombre)
+            {
+                return BadRequest("Ya existe un titulo con este nombre");
+            }
+
+            dbContext.Add(videojuego);
+            await dbContext.SaveChangesAsync();
+            return Ok();
+        }
 
 
+        /*
         [HttpPost]
 
         public async Task<ActionResult> Post (Videojuego videojuego)
@@ -68,7 +128,7 @@ namespace WebApiVideojuegos.Controllers
             await dbContext.SaveChangesAsync();
             return Ok();
         }
-
+        */
         [HttpPut("{id:int}")]
         public async Task<ActionResult> Put(Videojuego videojuego, int id)
         {

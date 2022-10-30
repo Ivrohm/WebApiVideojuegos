@@ -4,7 +4,7 @@
 
 namespace WebApiVideojuegos.Migrations
 {
-    public partial class inicial : Migration
+    public partial class Inicial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

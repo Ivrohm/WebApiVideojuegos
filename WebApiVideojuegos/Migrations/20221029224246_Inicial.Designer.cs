@@ -11,8 +11,8 @@ using WebApiVideojuegos;
 namespace WebApiVideojuegos.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220926233732_inicial")]
-    partial class inicial
+    [Migration("20221029224246_Inicial")]
+    partial class Inicial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
