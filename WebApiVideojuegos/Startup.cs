@@ -1,10 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
 
 using WebApiVideojuegos.Services;
-using Microsoft.Extensions.Logging;
+using WebApiVideojuegos.Controllers;
+
 using WebApiVideojuegos.Middlewares;
+
+using WebApiVideojuegos.Filtros;
+
 
 namespace WebApiVideojuegos
 {
@@ -32,6 +39,14 @@ namespace WebApiVideojuegos
             services.AddSingleton<ServiceSingleton>();
 
             ///
+
+            //parte del Ihosted
+            services.AddTransient<FiltroDeAccion>();
+               
+            services.AddHostedService<EscribirArchivo>();
+            services.AddResponseCaching();
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+
 
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(c =>
@@ -87,6 +102,8 @@ namespace WebApiVideojuegos
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseResponseCaching();
 
             app.UseAuthorization();
 

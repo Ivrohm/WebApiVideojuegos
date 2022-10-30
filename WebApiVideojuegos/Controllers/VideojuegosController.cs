@@ -1,19 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Formats.Asn1;
 using WebApiVideojuegos.Entidades;
 using WebApiVideojuegos.Services;
-
+using WebApiVideojuegos.Filtros;
 
 
 namespace WebApiVideojuegos.Controllers
 {
     [ApiController]
     [Route("videojuegos")]
+    [Authorize]
 
     public class VideojuegosController: ControllerBase
     {
-        private readonly ApplicationDbContext dbContext;
+        private readonly ApplicationDbContext dbContext;//filtros 
         private readonly IService service;
         private readonly ServiceTransient serviceTransient;
         private readonly ServiceScoped serviceScoped;
@@ -34,8 +35,9 @@ namespace WebApiVideojuegos.Controllers
         }
 
         [HttpGet("GUID")]
-        
-        //[ServiceFilter(typeof(FiltroDeAccion))]
+
+        [ResponseCache(Duration = 10)]
+        [ServiceFilter(typeof(FiltroDeAccion))]
    
         public ActionResult ObtenerGuid()
         {
@@ -55,6 +57,7 @@ namespace WebApiVideojuegos.Controllers
         [HttpGet]
         [HttpGet("listado")]//api/videojuegos/listado
         [HttpGet("/listado")]// listado
+        [ResponseCache(Duration = 10)]
         public async Task<ActionResult<List<Videojuego>>> Get()
 
         {
