@@ -1,147 +1,92 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using WebApiVideojuegos.DTOs;
+using WebApiVideojuegos.Entidades;
+using WebApiVideojuegos.Filtros;
+using AutoMapper;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using WebApiVideojuegos.Entidades;
-using WebApiVideojuegos.Services;
-using WebApiVideojuegos.Filtros;
-
+using Microsoft.VisualBasic;
+using System.Diagnostics;
+using System.Reflection.Metadata.Ecma335;
 
 namespace WebApiVideojuegos.Controllers
 {
     [ApiController]
-    [Route("videojuegos")]
-    [Authorize]
-
-    public class VideojuegosController: ControllerBase
+    [Route("api/Videojuegos")]
+    public class VideojuegosController : ControllerBase
     {
-        private readonly ApplicationDbContext dbContext;//filtros 
-        private readonly IService service;
-        private readonly ServiceTransient serviceTransient;
-        private readonly ServiceScoped serviceScoped;
-        private readonly ServiceSingleton serviceSingleton;
-        private readonly ILogger<VideojuegosController> logger;
+        
+        private readonly ApplicationDbContext dbContext;
+        private readonly IMapper mapper;
 
-        public VideojuegosController(ApplicationDbContext dbContext, IService service,
-            ServiceTransient serviceTransient, ServiceScoped serviceScoped,
-            ServiceSingleton serviceSingleton, ILogger<VideojuegosController> logger
-          )
+        public VideojuegosController(ApplicationDbContext dbContext, IMapper mapper)
         {
             this.dbContext = dbContext;
-            this.service = service;
-            this.serviceTransient = serviceTransient;
-            this.serviceScoped = serviceScoped;
-            this.serviceSingleton = serviceSingleton;
-            this.logger = logger;
-        }
-
-        [HttpGet("GUID")]
-
-        [ResponseCache(Duration = 10)]
-        [ServiceFilter(typeof(FiltroDeAccion))]
-   
-        public ActionResult ObtenerGuid()
-        {
-      
-            return Ok(new
-            {
-
-                VideojuegosControllerTransient = serviceTransient.guid,
-                ServiceA_Transient = service.GetTransient(),
-                VideojuegosControllerScoped = serviceScoped.guid,
-                ServiceA_Scoped = service.GetScoped(),
-                VideojuegosControllerSingleton = serviceSingleton.guid,
-                ServiceA_Singleton = service.GetSingleton()
-            });
+            this.mapper = mapper;
         }
 
         [HttpGet]
-        [HttpGet("listado")]//api/videojuegos/listado
-        [HttpGet("/listado")]// listado
-        [ResponseCache(Duration = 10)]
-        public async Task<ActionResult<List<Videojuego>>> Get()
-
+        public async Task<ActionResult<List<GetVideojuegoDTO>>> Get()
         {
-            //existen varios niveles de loog puede mostrar cosas criticas
-            //throw new NotImplementedException();
-            logger.LogInformation("Se obtiene el listado de juegos");
-            logger.LogWarning("Mensaje de prueba warning");
-            service.ejecutarJob();
-            return await dbContext.Videojuegos.Include(x => x.EspecVideojuegos).ToListAsync();
+            var videojuego = await dbContext.Videojuegos.ToListAsync();
+            return mapper.Map<List<GetVideojuegoDTO>>(videojuego);
         }
 
-        [HttpGet("primero")]//api/videojuegos/primero
-        public async Task<ActionResult<EspecVideojuego>> Primerjuego([FromHeader] int Id, [FromQuery] string name,
-               [FromQuery] int VideojuegoId)
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<VideojuegoDTOConTiendaVideojuego>> Get(int id)
         {
-            return await dbContext.EspecVideojuegos.FirstOrDefaultAsync();
-        }
+            var videojuego = await dbContext.Videojuegos
+                .Include(videojuegDB => videojuegDB.videojuegoTiendaVideojuegos)
+                .ThenInclude(ConsolaDB=>ConsolaDB.tiendaVideojuego)
+                .FirstOrDefaultAsync(videojuegoBD => videojuegoBD.Id == id);
 
-        [HttpGet("primero2")]//api/videojuegos/primero2
-        public ActionResult<EspecVideojuego> PrimerPeliculaD()
-        {
-            return new EspecVideojuego() { name = "DOS" };
-        }
-
-        [HttpGet("{id:int}/{param=Metroid}")]
-        public async Task<ActionResult<EspecVideojuego>> Get(int id, string param)
-        {
-            var juego = await dbContext.EspecVideojuegos.FirstOrDefaultAsync(x => x.Id == id);
-            if (juego == null)
+            if(videojuego == null)
             {
-
                 return NotFound();
             }
-            return juego;
-        }
-        [HttpGet("obtenerJuego/{nombre}")]
-        public async Task<ActionResult<EspecVideojuego>> Get([FromRoute] string nombre)
-        {
-            var juego = await dbContext.EspecVideojuegos.FirstOrDefaultAsync(x => x.name.Contains(nombre));
-            if (juego == null)
-            {
-                logger.LogError("No se encuentra el juego");
-                return NotFound();
-            }
-            return juego;
+
+            return mapper.Map<VideojuegoDTOConTiendaVideojuego>(videojuego);
         }
 
-     
+        [HttpGet("{nombre}")]
+        public async Task<ActionResult<List<GetVideojuegoDTO>>> Get([FromRoute]string nombre)
+        {
+            var game = await dbContext.Videojuegos.Where(peliculaBD => peliculaBD.Titulo.Contains(nombre)).ToListAsync();
+           
+            return mapper.Map<List<GetVideojuegoDTO>>(game);
+        }
+
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody] Videojuego videojuego)
+        public async Task<ActionResult> Post([FromBody] VideojuegoDTO videojuegoDTO)
         {
-            var existeAlumnoMismoNombre = await dbContext.Videojuegos.AnyAsync(x => x.name == videojuego.name);
+            var existePeliculaMismoNombre = await dbContext.Videojuegos.AnyAsync(x => x.Titulo ==videojuegoDTO.Titulo);
 
-            if (existeAlumnoMismoNombre)
+            if (existePeliculaMismoNombre)
             {
-                return BadRequest("Ya existe un titulo con este nombre");
+                return BadRequest("Ya existe un videojuego con el mismo nombre");
             }
 
-            dbContext.Add(videojuego);
+            var game = mapper.Map<Videojuego>(videojuegoDTO);
+
+            dbContext.Add(game);
             await dbContext.SaveChangesAsync();
             return Ok();
         }
 
-
-        /*
-        [HttpPost]
-
-        public async Task<ActionResult> Post (Videojuego videojuego)
-        {
-            dbContext.Add(videojuego);
-            await dbContext.SaveChangesAsync();
-            return Ok();
-        }
-        */
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> Put(Videojuego videojuego, int id)
+        public async Task<ActionResult> Put(VideojuegoDTO videojuego, int id)
         {
-            if(videojuego.Id != id)
+            var exist = await dbContext.Videojuegos.AnyAsync(x => x.Id == id);
+            if(!exist)
             {
-                return BadRequest("El juego con la id no esta disponible");
+                return NotFound();
             }
-            dbContext.Update(videojuego);
+            var game = mapper.Map<Videojuego>(videojuego);
+            game.Id = id;
+
+            dbContext.Update(game);
             await dbContext.SaveChangesAsync();
-            return Ok();
+            return NoContent();
         }
 
         [HttpDelete("{id:int}")]
@@ -160,5 +105,7 @@ namespace WebApiVideojuegos.Controllers
             await dbContext.SaveChangesAsync();
             return Ok();
         }
+
+        
     }
 }
