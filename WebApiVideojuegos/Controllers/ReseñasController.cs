@@ -1,9 +1,11 @@
 ﻿using WebApiVideojuegos.DTOs;
 using WebApiVideojuegos.Entidades;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
 namespace WebApiVideojuegos.Controllers
 {
     [ApiController]
@@ -12,11 +14,15 @@ namespace WebApiVideojuegos.Controllers
     {
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
-        public ReseñasController(ApplicationDbContext context, IMapper mapper)
+        private readonly UserManager<IdentityUser> userManager;
+        public ReseñasController(ApplicationDbContext context, IMapper mapper,
+                                                        UserManager<IdentityUser> userManager)
         {
             this.context = context;
             this.mapper = mapper;
+            this.userManager = userManager;
         }
+
 
         [HttpGet]
         public async Task<ActionResult<List<ReseñaVideojuegoDTO>>> Get(int videojuegoId)
@@ -47,8 +53,13 @@ namespace WebApiVideojuegos.Controllers
 
         [HttpPost]
 
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult> Post(int EspecId, ReseñaVideojuegoCreacionDTO reseñaCreacionDTO)
         {
+            var emailClaim = HttpContext.User.Claims.Where(claim => claim.Type == "email").FirstOrDefault();
+            var email = emailClaim.Value;
+            var usuario = await userManager.FindByEmailAsync(email);
+            var usuarioId = usuario.Id;
             var existeVideojuego = await context.TiendaVideojuegos.AnyAsync(videoDB => videoDB.Id == EspecId);
 
             if (!existeVideojuego)
@@ -58,6 +69,7 @@ namespace WebApiVideojuegos.Controllers
 
             var reseña = mapper.Map<Reseña>(reseñaCreacionDTO);
             reseña.tiendaVideojuegoId = EspecId;
+            reseña.UsuarioId = usuarioId;
             context.Add(reseña);
             await context.SaveChangesAsync();
             return Ok();

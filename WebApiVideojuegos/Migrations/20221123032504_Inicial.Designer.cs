@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApiVideojuegos;
 
@@ -11,9 +12,10 @@ using WebApiVideojuegos;
 namespace WebApiVideojuegos.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221123032504_Inicial")]
+    partial class Inicial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -228,9 +230,6 @@ namespace WebApiVideojuegos.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<string>("UsuarioId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("reseña")
                         .HasColumnType("nvarchar(max)");
 
@@ -238,8 +237,6 @@ namespace WebApiVideojuegos.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UsuarioId");
 
                     b.HasIndex("tiendaVideojuegoId");
 
@@ -359,17 +356,11 @@ namespace WebApiVideojuegos.Migrations
 
             modelBuilder.Entity("WebApiVideojuegos.Entidades.Reseña", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId");
-
                     b.HasOne("WebApiVideojuegos.Entidades.TiendaVideojuego", "tiendaVideojuego")
                         .WithMany("Reseñas")
                         .HasForeignKey("tiendaVideojuegoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Usuario");
 
                     b.Navigation("tiendaVideojuego");
                 });

@@ -1,4 +1,6 @@
-﻿namespace WebApiVideojuegos.Entidades
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace WebApiVideojuegos.Entidades
 {
     public class Reseña
     {
@@ -8,6 +10,9 @@
        
         public TiendaVideojuego tiendaVideojuego { get; set; }
 
-        
+        public string UsuarioId { get; set; }
+
+        public IdentityUser Usuario { get; set; }
+
     }
 }

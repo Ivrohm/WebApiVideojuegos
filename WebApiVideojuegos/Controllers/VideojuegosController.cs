@@ -8,31 +8,39 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 using System.Diagnostics;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebApiVideojuegos.Controllers
 {
     [ApiController]
-    [Route("api/Videojuegos")]
+    [Route("videojuegos")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "EsAdmin")]
     public class VideojuegosController : ControllerBase
     {
         
         private readonly ApplicationDbContext dbContext;
         private readonly IMapper mapper;
+        private readonly IConfiguration configuration;
 
-        public VideojuegosController(ApplicationDbContext dbContext, IMapper mapper)
+
+        public VideojuegosController(ApplicationDbContext dbContext, IMapper mapper,IConfiguration configuration )
         {
             this.dbContext = dbContext;
             this.mapper = mapper;
+            this.configuration = configuration;
         }
 
         [HttpGet]
+        //[AllowAnonymous]
+       // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<List<GetVideojuegoDTO>>> Get()
         {
             var videojuego = await dbContext.Videojuegos.ToListAsync();
             return mapper.Map<List<GetVideojuegoDTO>>(videojuego);
         }
 
-        [HttpGet("{id:int}")]
+        [HttpGet("{id:int}", Name = "obetner juegos")]
         public async Task<ActionResult<VideojuegoDTOConTiendaVideojuego>> Get(int id)
         {
             var videojuego = await dbContext.Videojuegos
